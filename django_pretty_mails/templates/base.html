@@ -1,0 +1,114 @@
+{% load i18n static %}
+{# Templates from: http://zurb.com/playground/responsive-email-templates #}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<!-- If you delete this meta tag, Half Life 3 will never be released. -->
+<meta name="viewport" content="width=device-width" />
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>{% trans "Pretty-mails" %}</title>
+
+{% setup_constance %}
+
+<style>
+    {% include "_email.css" %}
+</style>
+
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<!-- HEADER -->
+<table class="head-wrap" bgcolor="#000">
+    <tr>
+        <td></td>
+        <td class="header container" >
+            <div class="content">
+                <table bgcolor="#000">
+                    <tr>
+                        <td class="logo">
+                            <a href="{{ SITE_URL }}">
+                                <img src="{{ SITE_URL }}{% static 'img/logo.svg' %}" title="Pretty mails" alt="Pretty mails">
+                            </a>
+                        </td>
+                        <td align="right">
+                            <h6 class="collapse" style="color:#031b4e">
+                                <a href="{{ SITE_URL }}" style="color: #fff; font-weight: bold; text-decoration: none">
+                                    {% trans "Pretty mails" %}
+                                </a>
+                            </h6>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+        <td></td>
+    </tr>
+</table><!-- /HEADER -->
+
+<!-- BODY -->
+<table class="body-wrap">
+    <tr>
+        <td></td>
+        <td class="container" bgcolor="#FFFFFF">
+
+            <div class="content">
+                <table>
+                    <tr>
+                        <td>
+                            <p>{% block greeting %}{% endblock greeting %}</p>
+
+                            {% block mail_body %}{% endblock mail_body %}
+
+                            {% comment %}<p class="callout"></p>{% endcomment %}
+
+                            <p><hr></p>
+                            <p>{% trans "Best Regards," %}<br>{% trans "Pretty mails team" %}</p>
+                            <!-- social & contact -->
+                            <br />
+                            <table class="social" width="100%">
+                                <tr>
+                                    <td>
+                                        <!-- column 1 -->
+                                        <table align="left" class="column">
+                                            <tr>
+                                                <td>
+                                                    <h5 class="">{% trans "Connect with Us" %}:</h5>
+                                                    <p class="">
+                                                        <a href="#" class="soc-btn fb">
+                                                            {% trans "Facebook" %}
+                                                        </a>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table><!-- /column 1 -->
+                                        <!-- column 2 -->
+                                        <table align="left" class="column">
+                                            <tr>
+                                                <td>
+                                                    <h5 class="">{% trans "Contact Info" %}:</h5>
+                                                    <p>{% trans "Email" %}: <strong>
+                                                        <a href="mailto:mail@example.com">mail@example.com</a></strong><br>
+                                                        {% trans "Web" %}: <strong>
+                                                        <a href="#">example.com</a></strong><br>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table><!-- /column 2 -->
+                                        <span class="clear"></span>
+                                    </td>
+                                </tr>
+                            </table><!-- /social & contact -->
+                        </td>
+                    </tr>
+                </table>
+            </div><!-- /content -->
+        </td>
+        <td></td>
+    </tr>
+</table><!-- /BODY -->
+
+{% block footer %}{% endblock footer %}
+</body>
+</html>
