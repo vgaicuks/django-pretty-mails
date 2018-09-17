@@ -27,8 +27,20 @@ body {
   -webkit-text-size-adjust:none;
   width: 100%!important;
   height: 100%;
+  background-color: #FFFFFF;
 }
 
+.head-wrap {
+  background-color: #999999;
+}
+
+.head-wrap .content > table {
+  background-color: #999999;
+}
+
+.body-wrap .container {
+  background-color: #FFF;
+}
 
 /* -------------------------------------
     ELEMENTS
@@ -147,7 +159,7 @@ p, ul {
   font-weight: normal;
   font-size:14px;
   line-height:25.6px;
-  color: #505050;
+  color: #000;
 }
 p.lead { font-size:17px; }
 p.last { margin-bottom:0px;}

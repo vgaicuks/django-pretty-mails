@@ -4,11 +4,13 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _, ugettext as __
 
+from .app_settings import MAIL_TYPES
+
 
 def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[], admin_reply_to=None):
     """
-    For each type you must create "mails/{{ mail_type }}.html" template
-    You can also create "mails/{{ mail_type }}_admin.html" template.
+    For each type you must create "{{ mail_type }}.html" template
+    You can also create "{{ mail_type }}_admin.html" template.
     Then if "admin_mails" specified it will be used to send modified copy of mail,
     variables dict will be appended with "body" variable, which constains mail body
 
@@ -21,15 +23,15 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     attachments - ['path_to_file', 'path_to_file_2']
     """
 
-    if mail_type not in settings.MAIL_TYPES:
+    if mail_type not in MAIL_TYPES:
         raise Exception('No such mail type in list!')
 
-    mailconf = settings.MAIL_TYPES[mail_type]
+    mailconf = MAIL_TYPES[mail_type]
 
     if 'SITE_URL' not in variables:
-        variables['SITE_URL'] = settings.SITE_URL
+        variables['SITE_URL'] = getattr(settings, 'SITE_URL', '/')
 
-    body = render_to_string(f"mails/{mail_type}.html", variables)
+    body = render_to_string(f"django_pretty_mails/{mail_type}.html", variables)
 
     if not mails:
         if 'mails' in mailconf:
@@ -37,7 +39,7 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         else:
             raise Exception('No mail to send to!')
     elif isinstance(mails, str):
-        mails = (mails,)
+        mails = [mails]
 
     if not subject:
         subject = _(mailconf['subject'])
@@ -46,7 +48,10 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         subject = f"{__(mailconf['subject_prefix'])}{subject}"
 
     from_email = mailconf.get('from_email', settings.DEFAULT_FROM_EMAIL)
-    reply_to_mail = mailconf.get('reply_to_mail', None)
+    reply_to_mail = mailconf.get('reply_to_mail', [])
+
+    if isinstance(reply_to_mail, str):
+        reply_to_mail = [reply_to_mail]
 
     email = EmailMessage(
         subject=subject,
@@ -63,7 +68,7 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
 
     if 'admin_mails' in mailconf:
         try:
-            body = render_to_string(f"mails/{mail_type}_admin.html", {**variables, **{'body': body}})
+            body = render_to_string(f"django_pretty_mails/{mail_type}_admin.html", {**variables, **{'body': body}})
         except TemplateDoesNotExist:
             pass
 
