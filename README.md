@@ -36,7 +36,7 @@ PRETTY_MAIL_TYPES = {
         'reply_to_mail': 'info@example.com',
         'subject': 'Welcome e-mail',
         'subject_prefix': '[Project] ',
-        'admin_mails': [admin@example.com],
+        'admin_mails': ['admin@example.com'],
     },
 }
 ```
