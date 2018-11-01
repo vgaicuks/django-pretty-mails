@@ -7,7 +7,8 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from .app_settings import MAIL_TYPES
 
 
-def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[], admin_reply_to=None):
+def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[],
+               reply_to_mail=None, admin_reply_to=None, cc=None):
     """
     For each type you must create "{{ mail_type }}.html" template
     You can also create "{{ mail_type }}_admin.html" template.
@@ -48,7 +49,11 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         subject = f"{__(mailconf['subject_prefix'])}{subject}"
 
     from_email = mailconf.get('from_email', settings.DEFAULT_FROM_EMAIL)
-    reply_to_mail = mailconf.get('reply_to_mail', [])
+    if not reply_to_mail:
+        reply_to_mail = mailconf.get('reply_to_mail', [])
+
+    if isinstance(cc, str):
+        cc = [cc]
 
     if isinstance(reply_to_mail, str):
         reply_to_mail = [reply_to_mail]
@@ -58,7 +63,8 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         body=body,
         from_email=from_email,
         reply_to=reply_to_mail,
-        to=mails
+        to=mails,
+        cc=cc
     )
     # attach files
     for attachment_path in attachments:
