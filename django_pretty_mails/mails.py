@@ -1,7 +1,8 @@
 from django.conf import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _, ugettext as __
 
 from .app_settings import MAIL_TYPES
@@ -32,7 +33,11 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     if 'SITE_URL' not in variables:
         variables['SITE_URL'] = getattr(settings, 'SITE_URL', '/')
 
-    body = render_to_string(f"django_pretty_mails/{mail_type}.html", variables)
+    body_html = render_to_string(f"django_pretty_mails/{mail_type}.html", variables)
+    try:
+        body_text = render_to_string(f"django_pretty_mails/{mail_type}.txt", variables)
+    except TemplateDoesNotExist:
+        body_text = strip_tags(body_html)
 
     if not mails:
         if 'mails' in mailconf:
@@ -58,25 +63,37 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     if isinstance(reply_to_mail, str):
         reply_to_mail = [reply_to_mail]
 
-    email = EmailMessage(
+    email = EmailMultiAlternatives(
         subject=subject,
-        body=body,
+        body=body_text,
         from_email=from_email,
         reply_to=reply_to_mail,
         to=mails,
         cc=cc
     )
+    email.attach_alternative(body_html, 'text/html')
+
     # attach files
     for attachment_path in attachments:
         email.attach_file(attachment_path)
-    email.content_subtype = "html"
     email.send()
 
     if 'admin_mails' in mailconf:
         try:
-            body = render_to_string(f"django_pretty_mails/{mail_type}_admin.html", {**variables, **{'body': body}})
+            body_html = render_to_string(
+                f"django_pretty_mails/{mail_type}_admin.html",
+                {**variables, **{'body': body_html}}
+            )
         except TemplateDoesNotExist:
             pass
+
+        try:
+            body_text = render_to_string(
+                f"django_pretty_mails/{mail_type}_admin.txt",
+                {**variables, **{'body': body_text}}
+            )
+        except TemplateDoesNotExist:
+            body_text = strip_tags(body_html)
 
         if 'admin_subject_prefix' in mailconf:
             subject = f"{mailconf['admin_subject_prefix']}{subject}"
@@ -87,16 +104,16 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         else:
             admin_mails = mailconf['admin_mails']
 
-        email = EmailMessage(
+        email = EmailMultiAlternatives(
             subject=subject,
-            body=body,
+            body=body_text,
             from_email=from_email,
             reply_to=admin_reply_to,
             to=admin_mails
         )
+        email.attach_alternative(body_html, 'text/html')
 
         # attach files
         for attachment_path in attachments:
             email.attach_file(attachment_path)
-        email.content_subtype = "html"
         email.send()

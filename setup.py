@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='django_pretty_mails',
-    version='0.0.4',
+    version='0.0.5',
     author='Vitālijs Gaičuks',
     author_email='vitalijs.gaicuks@gmail.com',
     description='Django templated mails with responsive html design.',

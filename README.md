@@ -47,7 +47,6 @@ send an e-mail:
 from django_pretty_mails import send_email
 
 send_email('welcome', context, mails=['user@example.com'])
-
 ```
 
 
@@ -63,7 +62,6 @@ Use Django {% block %} {% endblock %} tag:
 #### Page title
 ```html
 {% block page_title %}{% trans "Project | blah blah blah" %}{% endblock page_title %}
-
 ```
 
 #### custom_css
@@ -80,7 +78,6 @@ Use Django {% block %} {% endblock %} tag:
     }
     </style>
 {% endblock custom_css %}
-
 ```
 
 #### Logo and Brand name
@@ -97,7 +94,6 @@ Use Django {% block %} {% endblock %} tag:
         <img src="https://placehold.it/200x90/" title="Project" alt="Project">
     </a>
 {% endblock logo %}
-
 ```
 
 #### best_regards, socials_btns, contact_info and footer
@@ -120,9 +116,13 @@ Use Django {% block %} {% endblock %} tag:
 {% endblock contact_info %}
 
 {% block footer %}{% endblock %}
-
-
 ```
+
+## Plain text templates
+
+Place your own plain content with extention: **.txt** (welcome.txt).
+
+Fallback will be **.html** template with ```striptags``` processing.
 
 ## License
 
