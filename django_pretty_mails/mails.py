@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from .app_settings import MAIL_TYPES
 
 
-def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[],
+def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[], attachments_content=[],
                reply_to_mail=None, admin_reply_to=None, cc=None, bcc=None):
     """
     For each type you must create "{{ mail_type }}.html" template
@@ -23,6 +23,10 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     admin_mails
     admin_subject_prefix
     attachments - ['path_to_file', 'path_to_file_2']
+    attachments_content = [
+        ('pdf_filename1.pdf', response.rendered_content, 'application/pdf'),
+        ('pdf_filename2.pdf', response.rendered_content, 'application/pdf')
+    ]
     """
 
     if mail_type not in MAIL_TYPES:
@@ -88,6 +92,10 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     # attach files
     for attachment_path in attachments:
         email.attach_file(attachment_path)
+
+    for att in attachments_content:
+        email.attach(*att)
+
     email.send()
 
     if 'admin_mails' in mailconf:
@@ -128,4 +136,8 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         # attach files
         for attachment_path in attachments:
             email.attach_file(attachment_path)
+
+        for att in attachments_content:
+            email.attach(*att)
+
         email.send()
