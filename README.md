@@ -34,6 +34,8 @@ setup your settings:
 PRETTY_MAIL_TYPES = {
     'welcome': {
         'reply_to_mail': 'info@example.com',
+        'cc': 'support@example.com',
+        'bcc': 'boss@example.com',
         'subject': 'Welcome e-mail',
         'subject_prefix': '[Project] ',
         'admin_mails': ['admin@example.com'],
