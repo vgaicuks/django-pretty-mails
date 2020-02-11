@@ -8,8 +8,13 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from .app_settings import MAIL_TYPES
 
 
+<<<<<<< HEAD
 def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[], attachments_content=[],
                reply_to_mail=None, admin_reply_to=None, cc=None):
+=======
+def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[],
+               reply_to_mail=None, admin_reply_to=None, cc=None, bcc=None):
+>>>>>>> Added ability to configure cc and bcc via mailconf
     """
     For each type you must create "{{ mail_type }}.html" template
     You can also create "{{ mail_type }}_admin.html" template.
@@ -37,6 +42,7 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     if 'SITE_URL' not in variables:
         variables['SITE_URL'] = getattr(settings, 'SITE_URL', '/')
 
+    # TODO: move to function
     body_html = render_to_string(f"django_pretty_mails/{mail_type}.html", variables)
     try:
         body_text = render_to_string(f"django_pretty_mails/{mail_type}.txt", variables)
@@ -61,11 +67,21 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     if not reply_to_mail:
         reply_to_mail = mailconf.get('reply_to_mail', [])
 
+    # TODO: DRY me
+    if isinstance(reply_to_mail, str):
+        reply_to_mail = [reply_to_mail]
+
+    if not cc:
+        cc = mailconf.get('cc', None)
+
     if isinstance(cc, str):
         cc = [cc]
 
-    if isinstance(reply_to_mail, str):
-        reply_to_mail = [reply_to_mail]
+    if not bcc:
+        bcc = mailconf.get('bcc', None)
+
+    if isinstance(bcc, str):
+        bcc = [bcc]
 
     email = EmailMultiAlternatives(
         subject=subject,
@@ -73,7 +89,8 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         from_email=from_email,
         reply_to=reply_to_mail,
         to=mails,
-        cc=cc
+        cc=cc,
+        bcc=bcc
     )
     email.attach_alternative(body_html, 'text/html')
 
