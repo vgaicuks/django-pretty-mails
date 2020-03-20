@@ -1,1 +1,2 @@
 recursive-include django_pretty_mails/templates *
+recursive-include django_pretty_mails/locale *
