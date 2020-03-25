@@ -9,7 +9,7 @@ from .app_settings import MAIL_TYPES
 
 
 def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[], attachments_content=[],
-               reply_to_mail=None, admin_reply_to=None, cc=None, bcc=None):
+               reply_to_mail=None, admin_reply_to=None, admin_mails=None, cc=None, bcc=None):
     """
     For each type you must create "{{ mail_type }}.html" template
     You can also create "{{ mail_type }}_admin.html" template.
@@ -28,7 +28,6 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         ('pdf_filename2.pdf', response.rendered_content, 'application/pdf')
     ]
     """
-
     if mail_type not in MAIL_TYPES:
         raise Exception('No such mail type in list!')
 
@@ -98,7 +97,7 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
 
     email.send()
 
-    if 'admin_mails' in mailconf:
+    if 'admin_mails' in mailconf or admin_mails:
         try:
             body_html = render_to_string(
                 f"django_pretty_mails/{mail_type}_admin.html",
@@ -118,11 +117,11 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         if 'admin_subject_prefix' in mailconf:
             subject = f"{mailconf['admin_subject_prefix']}{subject}"
 
+        admin_mails = admin_mails or mailconf['admin_mails']
+
         # On case when MANAGES or ADMINS passed as admin_mails variable
-        if isinstance(mailconf['admin_mails'], tuple):
-            admin_mails = [r[1] for r in mailconf['admin_mails']]
-        else:
-            admin_mails = mailconf['admin_mails']
+        if isinstance(admin_mails, tuple):
+            admin_mails = [r[1] for r in admin_mails]
 
         email = EmailMultiAlternatives(
             subject=subject,
