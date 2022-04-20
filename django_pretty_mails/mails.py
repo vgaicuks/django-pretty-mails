@@ -36,46 +36,82 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     if 'SITE_URL' not in variables:
         variables['SITE_URL'] = getattr(settings, 'SITE_URL', '/')
 
-    # TODO: move to function
-    body_html = render_to_string(f"django_pretty_mails/{mail_type}.html", variables)
-    try:
-        body_text = render_to_string(f"django_pretty_mails/{mail_type}.txt", variables)
-    except TemplateDoesNotExist:
-        body_text = strip_tags(body_html)
+    body_html, body_text = get_mail_body(mail_type, variables)
 
     if not mails:
         if 'mails' in mailconf:
             mails = mailconf['mails']
         else:
             raise Exception('No mail to send to!')
-    elif isinstance(mails, str):
-        mails = [mails]
 
-    if not subject:
-        subject = _(mailconf['subject'])
-
-    if 'subject_prefix' in mailconf and mailconf['subject_prefix']:
-        subject = f"{__(mailconf['subject_prefix'])}{subject}"
+    f'{__(mailconf.get("subject_prefix", ""))}{subject or _(mailconf["subject"])}'
 
     from_email = mailconf.get('from_email', settings.DEFAULT_FROM_EMAIL)
-    if not reply_to_mail:
-        reply_to_mail = mailconf.get('reply_to_mail', [])
 
-    # TODO: DRY me
-    if isinstance(reply_to_mail, str):
-        reply_to_mail = [reply_to_mail]
+    email = create_email_message(
+        body_text,
+        body_html,
+        subject,
+        convert_to_list(mails),
+        from_email,
+        attachments,
+        attachments_content,
+        convert_to_list(reply_to_mail or mailconf.get('reply_to_mail', [])),
+        convert_to_list(cc or mailconf.get('cc', None)),
+        convert_to_list(bcc or mailconf.get('bcc', None))
+    )
 
-    if not cc:
-        cc = mailconf.get('cc', None)
+    email.send()
 
-    if isinstance(cc, str):
-        cc = [cc]
+    if 'admin_mails' in mailconf or admin_mails:
+        try:
+            body_html, body_text = get_mail_body(
+                f'{mail_type}_admin', {
+                    **variables,
+                    'body': body_html
+                })
+        except Exception:
+            pass
 
-    if not bcc:
-        bcc = mailconf.get('bcc', None)
+        subject = f"{mailconf.get('admin_subject_prefix', '')}{subject}"
 
-    if isinstance(bcc, str):
-        bcc = [bcc]
+        admin_mails = admin_mails or mailconf['admin_mails']
+
+        # On case when MANAGES or ADMINS passed as admin_mails variable
+        if isinstance(admin_mails, tuple):
+            admin_mails = [r[1] for r in admin_mails]
+
+        email = create_email_message(
+            body_text,
+            body_html,
+            subject,
+            admin_mails,
+            from_email,
+            attachments,
+            attachments_content,
+            admin_reply_to
+        )
+
+        email.send()
+
+
+def convert_to_list(variable):
+    if isinstance(variable, str):
+        return [variable]
+    return variable
+
+
+def get_mail_body(template_name, variables):
+    body_html = render_to_string(f"django_pretty_mails/{template_name}.html", variables)
+    try:
+        body_text = render_to_string(f"django_pretty_mails/{template_name}.txt", variables)
+    except TemplateDoesNotExist:
+        body_text = strip_tags(body_html)
+    return body_html, body_text
+
+
+def create_email_message(body_text, body_html, subject, mails, from_email, attachments=[], attachments_content=[],
+                         reply_to_mail=None, cc=None, bcc=None):
 
     email = EmailMultiAlternatives(
         subject=subject,
@@ -86,6 +122,7 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
         cc=cc,
         bcc=bcc
     )
+
     email.attach_alternative(body_html, 'text/html')
 
     # attach files
@@ -95,48 +132,4 @@ def send_email(mail_type, variables={}, subject=None, mails=None, attachments=[]
     for att in attachments_content:
         email.attach(*att)
 
-    email.send()
-
-    if 'admin_mails' in mailconf or admin_mails:
-        try:
-            body_html = render_to_string(
-                f"django_pretty_mails/{mail_type}_admin.html",
-                {**variables, **{'body': body_html}}
-            )
-        except TemplateDoesNotExist:
-            pass
-
-        try:
-            body_text = render_to_string(
-                f"django_pretty_mails/{mail_type}_admin.txt",
-                {**variables, **{'body': body_text}}
-            )
-        except TemplateDoesNotExist:
-            body_text = strip_tags(body_html)
-
-        if 'admin_subject_prefix' in mailconf:
-            subject = f"{mailconf['admin_subject_prefix']}{subject}"
-
-        admin_mails = admin_mails or mailconf['admin_mails']
-
-        # On case when MANAGES or ADMINS passed as admin_mails variable
-        if isinstance(admin_mails, tuple):
-            admin_mails = [r[1] for r in admin_mails]
-
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=body_text,
-            from_email=from_email,
-            reply_to=admin_reply_to,
-            to=admin_mails
-        )
-        email.attach_alternative(body_html, 'text/html')
-
-        # attach files
-        for attachment_path in attachments:
-            email.attach_file(attachment_path)
-
-        for att in attachments_content:
-            email.attach(*att)
-
-        email.send()
+    return email
