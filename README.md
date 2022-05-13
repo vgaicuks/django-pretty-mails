@@ -13,10 +13,10 @@ Tested on Django 2.1, but must work on Django 1.8 and higher
 
 ### Installing
 
-Install via pip from [Github](https://github.com/vgaicuks/django-pretty-mails) repository
+Install via pip from [Github](https://github.com/trialine/django-pretty-mails) repository
 
 ```
-pip install git+https://github.com/vgaicuks/django-pretty-mails.git
+pip install git+https://github.com/trialine/django-pretty-mails.git
 ```
 
 add it to installed apps in django settings.py:
@@ -52,7 +52,6 @@ send_email('welcome', context, mails=['user@example.com'])
 ```
 
 
-
 ## Templates
 
 Place your own design under 'templates/django_pretty_mails/base.html'.
@@ -61,25 +60,19 @@ Place your own design under 'templates/django_pretty_mails/base.html'.
 
 Use Django {% block %} {% endblock %} tag:
 
-#### Page title
+#### Mail title
 ```html
 {% block page_title %}{% trans "Project | blah blah blah" %}{% endblock page_title %}
 ```
 
-#### custom_css
-
+#### Mail greeting
 ```html
-{% block custom_css %}
-    <style>
-    .head-wrap {
-        background-color: #0062a8;
-    }
+{% block greeting %}Hello, customer!{% endblock greeting %}
+```
 
-    .head-wrap .content > table {
-        background-color: #0062a8;
-    }
-    </style>
-{% endblock custom_css %}
+#### Mail body
+```html
+{% block mail_body %}Content of mail{% endblock mail_body %}
 ```
 
 #### Logo and Brand name
@@ -118,6 +111,22 @@ Use Django {% block %} {% endblock %} tag:
 {% endblock contact_info %}
 
 {% block footer %}{% endblock %}
+```
+
+#### custom_css
+
+```html
+{% block custom_css %}
+    <style>
+    .head-wrap {
+        background-color: #0062a8;
+    }
+
+    .head-wrap .content > table {
+        background-color: #0062a8;
+    }
+    </style>
+{% endblock custom_css %}
 ```
 
 ## Plain text templates
